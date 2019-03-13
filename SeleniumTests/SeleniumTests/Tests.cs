@@ -84,6 +84,24 @@ namespace SeleniumTests
             }
         }
 
+        [Test]
+        public void ProductsStickerTest()
+        {
+            webDriver.Url = "http://localhost/litecart/";
+            wait.Until(driver => driver.Title.Equals("Online Store | My Store"));
+
+            var products = webDriver.FindElements(By.CssSelector("li.product"));
+
+            foreach (var product in products)
+            {
+                product
+                    .FindElements(By.CssSelector(".sticker"))
+                    .Count
+                    .Should()
+                    .Be(1);
+            }
+        }
+
         [TearDown]
         public void TearDown()
         {
