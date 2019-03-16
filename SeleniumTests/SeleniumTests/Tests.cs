@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenQA.Selenium;
@@ -16,7 +17,7 @@ namespace SeleniumTests
         public void SetUp()
         {
             webDriver = new ChromeDriver();
-            wait = new WebDriverWait(webDriver, TimeSpan.FromMilliseconds(10));
+            wait = new WebDriverWait(webDriver, TimeSpan.FromSeconds(10));
         }
 
         [Test]
@@ -93,12 +94,104 @@ namespace SeleniumTests
             var products = webDriver.FindElements(By.CssSelector("li.product"));
 
             foreach (var product in products)
-            {
                 product
                     .FindElements(By.CssSelector(".sticker"))
                     .Count
                     .Should()
                     .Be(1);
+        }
+
+        [Test]
+        public void CountriesInAlphabeticOrderTest()
+        {
+            webDriver.Url = "http://localhost/litecart/admin/?app=countries&doc=countries";
+            webDriver
+                .FindElement(By.CssSelector("input[name ='username']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("input[name ='password']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("button[name='login']"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Countries | My Store"));
+
+            var countryNames = webDriver
+                .FindElements(By.CssSelector("tr.row a:not([title=Edit])"))
+                .Select(country => country.Text)
+                .ToList();
+            var expectedCountryNames = countryNames.OrderBy(x => x, StringComparer.Ordinal);
+
+            countryNames.Should().BeEquivalentTo(expectedCountryNames);
+        }
+
+        [Test]
+        public void ZonesOfCountriesInAlphabeticOrderTest()
+        {
+            webDriver.Url = "http://localhost/litecart/admin/?app=countries&doc=countries";
+            webDriver
+                .FindElement(By.CssSelector("input[name ='username']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("input[name ='password']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("button[name='login']"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Countries | My Store"));
+
+            var zoneUrls = webDriver
+                .FindElements(By.XPath("//tr[contains(@class, 'row')]/td[6][not(contains(., '0'))]/../td[5]/a"))
+                .Select(x => x.GetAttribute("href"))
+                .ToList();
+
+            foreach (var url in zoneUrls)
+            {
+                webDriver.Url = url;
+                wait.Until(driver => driver.Title.Equals("Edit Country | My Store"));
+
+                var zoneNames = webDriver
+                    .FindElements(By.CssSelector("tr [name^='zones'][name$='[name]']"))
+                    .Select(zone => zone.Text)
+                    .ToList();
+                var expectedZoneNames = zoneNames.OrderBy(x => x, StringComparer.Ordinal);
+
+                zoneNames.Should().BeEquivalentTo(expectedZoneNames);
+            }
+        }
+
+        [Test]
+        public void GeoZonesInAlphabeticOrderTest()
+        {
+            webDriver.Url = "http://localhost/litecart/admin/?app=geo_zones&doc=geo_zones";
+            webDriver
+                .FindElement(By.CssSelector("input[name ='username']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("input[name ='password']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("button[name='login']"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Geo Zones | My Store"));
+
+            var geoZoneUrls = webDriver
+                .FindElements(By.CssSelector("tr.row a:not([title='Edit'])"))
+                .Select(zone => zone.GetAttribute("href"))
+                .ToList();
+
+            foreach (var url in geoZoneUrls)
+            {
+                webDriver.Url = url;
+                wait.Until(driver => driver.Title.Equals("Edit Geo Zone | My Store"));
+
+                var geoZoneNames = webDriver
+                    .FindElements(By.CssSelector("td [name$='[zone_code]'] [selected]"))
+                    .Select(zone => zone.Text)
+                    .ToList();
+                var expectedGeoZoneNames = geoZoneNames.OrderBy(x => x, StringComparer.Ordinal);
+
+                geoZoneNames.Should().BeEquivalentTo(expectedGeoZoneNames);
             }
         }
 
