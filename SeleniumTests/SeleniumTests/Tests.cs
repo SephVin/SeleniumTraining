@@ -5,8 +5,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Firefox;
-using OpenQA.Selenium.IE;
 using OpenQA.Selenium.Support.UI;
 
 namespace SeleniumTests
@@ -36,10 +34,10 @@ namespace SeleniumTests
             wait.Until(driver => driver.Title.Equals("My Store"));
 
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='username']"))
+                .FindElement(By.CssSelector("input[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='password']"))
+                .FindElement(By.CssSelector("input[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -53,10 +51,10 @@ namespace SeleniumTests
             wait.Until(driver => driver.Title.Equals("My Store"));
 
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='username']"))
+                .FindElement(By.CssSelector("input[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='password']"))
+                .FindElement(By.CssSelector("input[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -109,10 +107,10 @@ namespace SeleniumTests
         {
             webDriver.Url = "http://localhost/litecart/admin/?app=countries&doc=countries";
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='username']"))
+                .FindElement(By.CssSelector("input[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='password']"))
+                .FindElement(By.CssSelector("input[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -133,10 +131,10 @@ namespace SeleniumTests
         {
             webDriver.Url = "http://localhost/litecart/admin/?app=countries&doc=countries";
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='username']"))
+                .FindElement(By.CssSelector("input[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='password']"))
+                .FindElement(By.CssSelector("input[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -168,10 +166,10 @@ namespace SeleniumTests
         {
             webDriver.Url = "http://localhost/litecart/admin/?app=geo_zones&doc=geo_zones";
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='username']"))
+                .FindElement(By.CssSelector("input[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("colorString[name ='password']"))
+                .FindElement(By.CssSelector("input[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -238,7 +236,6 @@ namespace SeleniumTests
             var campaignPriceTagNameOnProductPage = campaignPriceOnProductPage.TagName;
             var campaignPriceFrontSizeOnProductPage = campaignPriceOnProductPage.Size.Height;
             var campaignPriceColorOnProductPage = CleanUpColor(campaignPriceOnProductPage.GetCssValue("color"));
-
 
 
             productNameOnMainPage.Should().Be(productNameOnProductPage);
