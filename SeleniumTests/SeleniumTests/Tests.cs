@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.IE;
 using OpenQA.Selenium.Support.UI;
 
 namespace SeleniumTests
@@ -33,10 +36,10 @@ namespace SeleniumTests
             wait.Until(driver => driver.Title.Equals("My Store"));
 
             webDriver
-                .FindElement(By.CssSelector("input[name ='username']"))
+                .FindElement(By.CssSelector("colorString[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("input[name ='password']"))
+                .FindElement(By.CssSelector("colorString[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -50,10 +53,10 @@ namespace SeleniumTests
             wait.Until(driver => driver.Title.Equals("My Store"));
 
             webDriver
-                .FindElement(By.CssSelector("input[name ='username']"))
+                .FindElement(By.CssSelector("colorString[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("input[name ='password']"))
+                .FindElement(By.CssSelector("colorString[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -106,10 +109,10 @@ namespace SeleniumTests
         {
             webDriver.Url = "http://localhost/litecart/admin/?app=countries&doc=countries";
             webDriver
-                .FindElement(By.CssSelector("input[name ='username']"))
+                .FindElement(By.CssSelector("colorString[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("input[name ='password']"))
+                .FindElement(By.CssSelector("colorString[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -130,10 +133,10 @@ namespace SeleniumTests
         {
             webDriver.Url = "http://localhost/litecart/admin/?app=countries&doc=countries";
             webDriver
-                .FindElement(By.CssSelector("input[name ='username']"))
+                .FindElement(By.CssSelector("colorString[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("input[name ='password']"))
+                .FindElement(By.CssSelector("colorString[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -165,10 +168,10 @@ namespace SeleniumTests
         {
             webDriver.Url = "http://localhost/litecart/admin/?app=geo_zones&doc=geo_zones";
             webDriver
-                .FindElement(By.CssSelector("input[name ='username']"))
+                .FindElement(By.CssSelector("colorString[name ='username']"))
                 .SendKeys("admin");
             webDriver
-                .FindElement(By.CssSelector("input[name ='password']"))
+                .FindElement(By.CssSelector("colorString[name ='password']"))
                 .SendKeys("admin");
             webDriver
                 .FindElement(By.CssSelector("button[name='login']"))
@@ -193,6 +196,109 @@ namespace SeleniumTests
 
                 geoZoneNames.Should().BeEquivalentTo(expectedGeoZoneNames);
             }
+        }
+
+        [Test]
+        public void ProductPageIsCorrectTest()
+        {
+            webDriver.Url = "http://localhost/litecart/";
+            wait.Until(driver => driver.Title.Equals("Online Store | My Store"));
+
+            var firstProduct = webDriver.FindElements(By.CssSelector("#box-campaigns li.product"))[0];
+            var regularPriceOnMainPage = firstProduct.FindElement(By.CssSelector(".regular-price"));
+            var campaignPriceOnMainPage = firstProduct.FindElement(By.CssSelector(".campaign-price"));
+
+            var productNameOnMainPage = firstProduct
+                .FindElement(By.CssSelector(".name"))
+                .Text;
+            var regularPriceTextOnMainPage = regularPriceOnMainPage.Text;
+            var regularPriceTagNameOnMainPage = regularPriceOnMainPage.TagName;
+            var regularPriceFrontSizeOnMainPage = regularPriceOnMainPage.Size.Height;
+            var regularPriceColorOnMainPage = CleanUpColor(regularPriceOnMainPage.GetCssValue("color"));
+
+            var campaignPriceTextOnMainPage = campaignPriceOnMainPage.Text;
+            var campaignPriceTagNameOnMainPage = campaignPriceOnMainPage.TagName;
+            var campaignPriceFrontSizeOnMainPage = campaignPriceOnMainPage.Size.Height;
+            var campaignPriceColorOnMainPage = CleanUpColor(campaignPriceOnMainPage.GetCssValue("color"));
+
+            firstProduct.Click();
+
+            var regularPriceOnProductPage = webDriver.FindElement(By.CssSelector(".regular-price"));
+            var campaignPriceOnProductPage = webDriver.FindElement(By.CssSelector(".campaign-price"));
+
+            var productNameOnProductPage = webDriver
+                .FindElement(By.CssSelector("h1.title"))
+                .Text;
+            var regularPriceTextOnProductPage = regularPriceOnProductPage.Text;
+            var regularPriceTagNameOnProductPage = regularPriceOnProductPage.TagName;
+            var regularPriceFrontSizeOnProductPage = regularPriceOnProductPage.Size.Height;
+            var regularPriceColorOnProductPage = CleanUpColor(regularPriceOnProductPage.GetCssValue("color"));
+
+            var campaignPriceTextOnProductPage = campaignPriceOnProductPage.Text;
+            var campaignPriceTagNameOnProductPage = campaignPriceOnProductPage.TagName;
+            var campaignPriceFrontSizeOnProductPage = campaignPriceOnProductPage.Size.Height;
+            var campaignPriceColorOnProductPage = CleanUpColor(campaignPriceOnProductPage.GetCssValue("color"));
+
+
+
+            productNameOnMainPage.Should().Be(productNameOnProductPage);
+            regularPriceTextOnMainPage.Should().Be(regularPriceTextOnProductPage);
+            campaignPriceTextOnMainPage.Should().Be(campaignPriceTextOnProductPage);
+
+            regularPriceTagNameOnMainPage
+                .Should()
+                .Be(regularPriceTagNameOnProductPage)
+                .And
+                .Be("s");
+            campaignPriceTagNameOnMainPage
+                .Should()
+                .Be(campaignPriceTagNameOnProductPage)
+                .And
+                .Be("strong");
+
+            regularPriceColorOnMainPage
+                .Distinct()
+                .Count()
+                .Should()
+                .Be(1);
+            regularPriceColorOnProductPage
+                .Distinct()
+                .Count()
+                .Should()
+                .Be(1);
+
+            campaignPriceColorOnMainPage[1]
+                .Should()
+                .Be(campaignPriceColorOnMainPage[2])
+                .And
+                .Be("0");
+            campaignPriceColorOnProductPage[1]
+                .Should()
+                .Be(campaignPriceColorOnProductPage[2])
+                .And
+                .Be("0");
+
+            campaignPriceFrontSizeOnMainPage
+                .Should()
+                .BeGreaterThan(regularPriceFrontSizeOnMainPage);
+            campaignPriceFrontSizeOnProductPage
+                .Should()
+                .BeGreaterThan(regularPriceFrontSizeOnProductPage);
+        }
+
+        private static List<string> CleanUpColor(string colorString)
+        {
+            var cleanColor = colorString
+                .Replace("rgb(", "")
+                .Replace("rgba(", "")
+                .Replace(")", "")
+                .Replace(" ", "")
+                .Split(',')
+                .ToList();
+
+            if (cleanColor.Count == 4) cleanColor.RemoveAt(3);
+
+            return cleanColor;
         }
 
         [TearDown]
