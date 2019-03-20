@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using ExpectedConditions = SeleniumExtras.WaitHelpers.ExpectedConditions;
 
 namespace SeleniumTests
 {
@@ -289,7 +291,9 @@ namespace SeleniumTests
             webDriver.Url = "http://localhost/litecart/";
             wait.Until(driver => driver.Title.Equals("Online Store | My Store"));
 
-            webDriver.FindElement(By.CssSelector("form[name='login_form'] a")).Click();
+            webDriver
+                .FindElement(By.CssSelector("form[name='login_form'] a"))
+                .Click();
             wait.Until(driver => driver.Title.Equals("Create Account | My Store"));
 
             var login = $"{Guid.NewGuid()}@test.ru";
@@ -311,17 +315,98 @@ namespace SeleniumTests
             Type(By.CssSelector("input[name='password']"), password);
             Type(By.CssSelector("input[name='confirmed_password']"), password);
 
-            webDriver.FindElement(By.CssSelector("button[name='create_account']")).Click();
+            webDriver
+                .FindElement(By.CssSelector("button[name='create_account']"))
+                .Click();
 
             wait.Until(driver => driver.Title.Equals("Online Store | My Store"));
 
-            webDriver.FindElement(By.XPath("//div[@id='box-account']//a[contains(.,'Logout')]")).Click();
+            webDriver
+                .FindElement(By.XPath("//div[@id='box-account']//a[contains(.,'Logout')]"))
+                .Click();
 
             Type(By.CssSelector("input[name='email']"), login);
             Type(By.CssSelector("input[name='password']"), password);
 
-            webDriver.FindElement(By.CssSelector("button[name='login']")).Click();
-            webDriver.FindElement(By.XPath("//div[@id='box-account']//a[contains(.,'Logout')]")).Click();
+            webDriver
+                .FindElement(By.CssSelector("button[name='login']"))
+                .Click();
+            webDriver
+                .FindElement(By.XPath("//div[@id='box-account']//a[contains(.,'Logout')]"))
+                .Click();
+        }
+
+        [Test]
+        public void CreateNewProductTest()
+        {
+            webDriver.Url = "http://localhost/litecart/admin/?app=catalog&doc=catalog";
+            wait.Until(driver => driver.Title.Equals("My Store"));
+
+            Type(By.CssSelector("input[name ='username']"), "admin");
+            Type(By.CssSelector("input[name ='password']"), "admin");
+            webDriver
+                .FindElement(By.CssSelector("button[name='login']"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Catalog | My Store"));
+
+
+            webDriver
+                .FindElement(By.XPath("//a[@class='button'][contains(., ' Add New Product')]"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Add New Product | My Store"));
+
+            var productName = $"{Guid.NewGuid()}";
+            Type(By.CssSelector("input[name='name[en]']"), productName);
+            Type(By.CssSelector("input[name='code']"), $"777");
+            webDriver
+                .FindElement(By.CssSelector("input[name='product_groups[]'][value='1-1']"))
+                .Click();
+            Type(By.CssSelector("input[name='quantity']"), "666");
+            webDriver
+                .FindElement(By.CssSelector("input[name='new_images[]']"))
+                .SendKeys(Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData\\ProductImage.png"));
+            Type(
+                By.CssSelector("input[name='date_valid_from']"), 
+                $"{DateTime.Now:dd-MM-yyyy}");
+            Type(
+                By.CssSelector("input[name='date_valid_to']"), 
+                $"{DateTime.Now.AddDays(1):dd-MM-yyyy}");
+
+
+            webDriver
+                .FindElement(By.CssSelector("a[href='#tab-information']"))
+                .Click();
+            wait.Until(ExpectedConditions.ElementIsVisible(By.CssSelector("select[name='manufacturer_id']")));
+
+            SelectByValue(By.CssSelector("select[name='manufacturer_id']"), "1");
+            Type(By.CssSelector("input[name='keywords']"), "keywords");
+            Type(By.CssSelector("input[name='short_description[en]']"), "short description");
+            Type(By.CssSelector(".trumbowyg-editor"), "description");
+            Type(By.CssSelector("input[name='head_title[en]']"), "head title");
+            Type(By.CssSelector("input[name='meta_description[en]']"), "main description");
+
+
+            webDriver
+                .FindElement(By.CssSelector("a[href='#tab-prices']"))
+                .Click();
+            wait.Until(ExpectedConditions.ElementIsVisible(By.CssSelector("input[name='purchase_price']")));
+
+            Type(By.CssSelector("input[name='purchase_price']"), "999");
+            SelectByValue(By.CssSelector("select[name='purchase_price_currency_code']"), "USD");
+            Type(By.CssSelector("input[name='prices[USD]']"), "100");
+            Type(By.CssSelector("input[name='gross_prices[USD]']"), "110");
+            Type(By.CssSelector("input[name='prices[EUR]']"), "70");
+            Type(By.CssSelector("input[name='gross_prices[EUR]']"), "85");
+
+            webDriver
+                .FindElement(By.CssSelector("button[name='save']"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Catalog | My Store"));
+            webDriver
+                .FindElement(By.XPath($"//table[@class='dataTable']//a[contains(.,'{productName}')]"))
+                .Displayed
+                .Should()
+                .BeTrue();
         }
 
         private void SelectByValue(By locator, string value)
