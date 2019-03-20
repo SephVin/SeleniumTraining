@@ -283,6 +283,63 @@ namespace SeleniumTests
                 .BeGreaterThan(regularPriceFrontSizeOnProductPage);
         }
 
+        [Test]
+        public void CreateAccountTest()
+        {
+            webDriver.Url = "http://localhost/litecart/";
+            wait.Until(driver => driver.Title.Equals("Online Store | My Store"));
+
+            webDriver.FindElement(By.CssSelector("form[name='login_form'] a")).Click();
+            wait.Until(driver => driver.Title.Equals("Create Account | My Store"));
+
+            var login = $"{Guid.NewGuid()}@test.ru";
+            var password = "123456";
+
+            Type(By.CssSelector("input[name='firstname']"), "John");
+            Type(By.CssSelector("input[name='lastname']"), "Doe");
+            Type(By.CssSelector("input[name='address1']"), "Address");
+            Type(By.CssSelector("input[name='postcode']"), "12345");
+            Type(By.CssSelector("input[name='city']"), "Ekb");
+            SelectByValue(By.CssSelector("select[name='country_code']"), "US");
+
+            wait.Until(driver =>
+                driver.FindElement(By.CssSelector("select[name='zone_code']")).Enabled);
+
+            SelectByValue(By.CssSelector("select[name='zone_code']"), "TX");
+            Type(By.CssSelector("input[name='email']"), login);
+            Type(By.CssSelector("input[name='phone']"), "+71234567890");
+            Type(By.CssSelector("input[name='password']"), password);
+            Type(By.CssSelector("input[name='confirmed_password']"), password);
+
+            webDriver.FindElement(By.CssSelector("button[name='create_account']")).Click();
+
+            wait.Until(driver => driver.Title.Equals("Online Store | My Store"));
+
+            webDriver.FindElement(By.XPath("//div[@id='box-account']//a[contains(.,'Logout')]")).Click();
+
+            Type(By.CssSelector("input[name='email']"), login);
+            Type(By.CssSelector("input[name='password']"), password);
+
+            webDriver.FindElement(By.CssSelector("button[name='login']")).Click();
+            webDriver.FindElement(By.XPath("//div[@id='box-account']//a[contains(.,'Logout')]")).Click();
+        }
+
+        private void SelectByValue(By locator, string value)
+        {
+            var element = webDriver.FindElement(locator);
+            var selector = new SelectElement(element);
+            selector.SelectByValue(value);
+        }
+
+        private void Type(By locator, string text)
+        {
+            if (text != null)
+            {
+                webDriver.FindElement(locator).Clear();
+                webDriver.FindElement(locator).SendKeys(text);
+            }
+        }
+
         private static List<string> CleanUpColor(string colorString)
         {
             var cleanColor = colorString
