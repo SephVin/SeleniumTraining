@@ -357,7 +357,7 @@ namespace SeleniumTests
 
             var productName = $"{Guid.NewGuid()}";
             Type(By.CssSelector("input[name='name[en]']"), productName);
-            Type(By.CssSelector("input[name='code']"), $"777");
+            Type(By.CssSelector("input[name='code']"), "777");
             webDriver
                 .FindElement(By.CssSelector("input[name='product_groups[]'][value='1-1']"))
                 .Click();
@@ -366,10 +366,10 @@ namespace SeleniumTests
                 .FindElement(By.CssSelector("input[name='new_images[]']"))
                 .SendKeys(Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData\\ProductImage.png"));
             Type(
-                By.CssSelector("input[name='date_valid_from']"), 
+                By.CssSelector("input[name='date_valid_from']"),
                 $"{DateTime.Now:dd-MM-yyyy}");
             Type(
-                By.CssSelector("input[name='date_valid_to']"), 
+                By.CssSelector("input[name='date_valid_to']"),
                 $"{DateTime.Now.AddDays(1):dd-MM-yyyy}");
 
 
@@ -407,6 +407,96 @@ namespace SeleniumTests
                 .Displayed
                 .Should()
                 .BeTrue();
+        }
+
+        [Test]
+        public void RemoveProductFromCartTest()
+        {
+            webDriver.Url = "http://localhost/litecart/";
+            wait.Until(ExpectedConditions.TitleIs("Online Store | My Store"));
+
+            AddFirstProductToCart(3);
+
+            webDriver
+                .FindElement(By.CssSelector("#cart a.link"))
+                .Click();
+            wait.Until(ExpectedConditions.TitleIs("Checkout | My Store"));
+
+            var uniqueProductsInCart = webDriver
+                .FindElements(By.CssSelector(".dataTable tr:not(.header) .item"))
+                .Count;
+
+            if (uniqueProductsInCart > 1)
+                RemoveProductFromCart(uniqueProductsInCart - 1);
+
+            RemoveLastProductFromCart();
+        }
+
+        private void RemoveLastProductFromCart()
+        {
+            webDriver
+                .FindElement(By.CssSelector("button[name='remove_cart_item']"))
+                .Click();
+            wait.Until(ExpectedConditions.ElementIsVisible(By.CssSelector("div#content em")));
+            webDriver
+                .FindElement(By.CssSelector("div#content em"))
+                .Text
+                .Should()
+                .Be("There are no items in your cart.");
+        }
+
+        private void RemoveProductFromCart(int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var uniqueProductsInCart = webDriver
+                    .FindElements(By.CssSelector(".dataTable tr:not(.header) .item"))
+                    .Count;
+                webDriver
+                    .FindElement(By.CssSelector("button[name='remove_cart_item']"))
+                    .Click();
+                wait.Until(driver => driver
+                    .FindElements(By.CssSelector(".dataTable tr:not(.header) .item"))
+                    .Count
+                    .Equals(uniqueProductsInCart - 1));
+            }
+        }
+
+        private void AddFirstProductToCart(int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var cartQuantityElement = webDriver.FindElement(By.CssSelector("#cart .quantity"));
+                var cartQuantityValue = int.Parse(cartQuantityElement.Text);
+
+                webDriver
+                    .FindElements(By.CssSelector("li.product"))[0]
+                    .Click();
+                wait.Until(ExpectedConditions.ElementExists(By.CssSelector("button[name='add_cart_product']")));
+
+                SelectSize();
+
+                webDriver
+                    .FindElement(By.CssSelector("button[name='add_cart_product']"))
+                    .Click();
+                wait.Until(ExpectedConditions.TextToBePresentInElement(
+                    webDriver.FindElement(By.CssSelector("#cart .quantity")),
+                    $"{cartQuantityValue + 1}"));
+
+                webDriver.Url = "http://localhost/litecart/";
+            }
+        }
+
+        private void SelectSize()
+        {
+            var sizeSelectLocator = By.CssSelector("select[name='options[Size]']");
+
+            if (IsElementPresent(sizeSelectLocator))
+            {
+                var element = webDriver.FindElement(sizeSelectLocator);
+                var selector = new SelectElement(element);
+                selector.SelectByIndex(1);
+            }
         }
 
         private void SelectByValue(By locator, string value)
