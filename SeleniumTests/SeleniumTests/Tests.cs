@@ -432,6 +432,61 @@ namespace SeleniumTests
             RemoveLastProductFromCart();
         }
 
+        [Test]
+        public void NewWindowsTest()
+        {
+            webDriver.Url = "http://localhost/litecart/admin/?app=countries&doc=countries";
+            wait.Until(driver => driver.Title.Equals("My Store"));
+
+            webDriver
+                .FindElement(By.CssSelector("input[name ='username']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("input[name ='password']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("button[name='login']"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Countries | My Store"));
+
+            webDriver
+                .FindElement(By.XPath("//a[@class='button'][contains(., 'Add New Country')]"))
+                .Click();
+            wait.Until(driver => driver.Title.Equals("Add New Country | My Store"));
+
+            var externalLinksCount = webDriver
+                .FindElements(By.CssSelector(".fa.fa-external-link"))
+                .Count;
+            for (var i = 0; i < externalLinksCount; i++)
+            {
+                var currentWindowHandle = webDriver.CurrentWindowHandle;
+                var windowHandles = webDriver.WindowHandles;
+
+                webDriver
+                    .FindElements(By.CssSelector(".fa.fa-external-link"))[i]
+                    .Click();
+                var newWindowHandle = wait.Until(AnyWindowOtherThan(windowHandles));
+                newWindowHandle.Should().NotBeEmpty();
+
+                webDriver.SwitchTo().Window(newWindowHandle);
+                webDriver.Close();
+                webDriver.SwitchTo().Window(currentWindowHandle);
+            }
+        }
+
+        private static Func<IWebDriver, string> AnyWindowOtherThan(IReadOnlyCollection<string> oldWindowHandles)
+        {
+            return driver =>
+            {
+                var newWindowHandles = driver.WindowHandles;
+                var newWindows = newWindowHandles.Except(oldWindowHandles).ToList();
+
+                return newWindows.Any()
+                    ? newWindows.FirstOrDefault()
+                    : string.Empty;
+            };
+        }
+
         private void RemoveLastProductFromCart()
         {
             webDriver
