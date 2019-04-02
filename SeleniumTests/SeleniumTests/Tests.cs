@@ -474,6 +474,42 @@ namespace SeleniumTests
             }
         }
 
+        [Test]
+        public void BrowserLogsTest()
+        {
+            webDriver.Url = "http://localhost/litecart/admin/?app=catalog&doc=catalog&category_id=1";
+            wait.Until(driver => driver.Title.Equals("My Store"));
+
+            webDriver
+                .FindElement(By.CssSelector("input[name ='username']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("input[name ='password']"))
+                .SendKeys("admin");
+            webDriver
+                .FindElement(By.CssSelector("button[name='login']"))
+                .Click();
+            wait.Until(driver => driver.FindElement(By.CssSelector(".notice.success")));
+
+            var productsCount = webDriver
+                .FindElements(By.XPath("//td/a[contains(@href,'category_id=1')][not(contains(@title,'Edit'))]"))
+                .Count;
+            for (var i = 0; i < productsCount; i++)
+            {
+                webDriver
+                    .FindElements(By.XPath("//td/a[contains(@href,'category_id=1')][not(contains(@title,'Edit'))]"))[i]
+                    .Click();
+                webDriver.Manage().Logs
+                    .GetLog("browser")
+                    .Any()
+                    .Should()
+                    .BeFalse();
+
+                webDriver.Url = "http://localhost/litecart/admin/?app=catalog&doc=catalog&category_id=1";
+                wait.Until(driver => driver.Title.Equals("Catalog | My Store"));
+            }
+        }
+
         private static Func<IWebDriver, string> AnyWindowOtherThan(IReadOnlyCollection<string> oldWindowHandles)
         {
             return driver =>
